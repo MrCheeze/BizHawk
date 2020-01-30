@@ -385,7 +385,7 @@ uint32 read_memory_32(uint32 addr){
         return sl(*((unsigned int *)(PIF_RAMb + (addrlow & 0x7FF) - 0x7C0)));
       break;
     case M64P_MEM_MI:
-      if (addrlow < 0x10)
+      if (addrlow < 0x40)
         return *(readmi[addrlow&0xfffc]);
       break;
     default:
@@ -536,7 +536,7 @@ uint32 get_memory_flags(uint32 addr)
         flags = M64P_MEM_FLAG_READABLE | M64P_MEM_FLAG_WRITABLE_EMUONLY;
       break;
     case M64P_MEM_MI:
-      if (addrlow < 0x10)
+      if (addrlow < 0x40)
         flags = M64P_MEM_FLAG_READABLE | M64P_MEM_FLAG_WRITABLE_EMUONLY;
       break;
     default:

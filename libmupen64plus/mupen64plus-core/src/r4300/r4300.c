@@ -972,6 +972,19 @@ void r4300_reset_soft(void)
       break;
    }
 
+   /* iQue - initialized by System App */
+   rdram[0x35c/4] = 0x807C0000; // __osBbEepromAddress
+   rdram[0x360/4] = 0x800; // __osBbEepromSize
+   rdram[0x364/4] = 0x807C0000; // __osBbFlashAddress
+   rdram[0x368/4] = 0x20000; // __osBbFlashSize
+   rdram[0x36c/4] = 0x807C0000; // __osBbSramAddress
+   rdram[0x370/4] = 0x8000; // __osBbSramSize
+   rdram[0x374/4] = 0x807C4000; // __osBbPakAddress[0]
+   rdram[0x378/4] = 0x807CC000; // __osBbPakAddress[1]
+   rdram[0x37c/4] = 0x807D4000; // __osBbPakAddress[2]
+   rdram[0x380/4] = 0x807DC000; // __osBbPakAddress[3]
+   rdram[0x384/4] = 0x8000; // __osBbPakAddress
+
 }
 
 #if !defined(NO_ASM)

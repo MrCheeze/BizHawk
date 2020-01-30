@@ -538,6 +538,12 @@ int init_memory(int DoByteSwap)
     readmi[0xc] = &MI_register.mi_intr_mask_reg;
 
     for (i=0x10; i<0x10000; i++) readmi[i] = &trash;
+
+    /* iQue */
+    MI_register.w_mi_hw_intr_mask_reg = 0;
+    MI_register.mi_hw_intr_mask_reg = 0;
+    readmi[0x3C] = &MI_register.mi_hw_intr_mask_reg;
+
     for (i=1; i<0x10; i++)
     {
         readmem[0x8430+i] = read_nothing;
@@ -1091,6 +1097,27 @@ static void update_MI_intr_mask_reg(void)
     if (MI_register.w_mi_intr_mask_reg & 0x200) MI_register.mi_intr_mask_reg |= 0x10; // set PI mask
     if (MI_register.w_mi_intr_mask_reg & 0x400) MI_register.mi_intr_mask_reg &= ~0x20; // clear DP mask
     if (MI_register.w_mi_intr_mask_reg & 0x800) MI_register.mi_intr_mask_reg |= 0x20; // set DP mask
+}
+
+/* iQue */
+static void update_MI_hw_intr_mask_reg(void)
+{
+    if (MI_register.w_mi_hw_intr_mask_reg & 0x1000)   MI_register.mi_hw_intr_mask_reg &= ~0x40; // clear NAND DMA mask
+    if (MI_register.w_mi_hw_intr_mask_reg & 0x2000)   MI_register.mi_hw_intr_mask_reg |= 0x40; // set NAND DMA mask
+    if (MI_register.w_mi_hw_intr_mask_reg & 0x4000)   MI_register.mi_hw_intr_mask_reg &= ~0x80; // clear MD mask
+    if (MI_register.w_mi_hw_intr_mask_reg & 0x8000)   MI_register.mi_hw_intr_mask_reg |= 0x80; // set MD mask
+    if (MI_register.w_mi_hw_intr_mask_reg & 0x10000)  MI_register.mi_hw_intr_mask_reg &= ~0x100; // clear RDB mask
+    if (MI_register.w_mi_hw_intr_mask_reg & 0x20000)  MI_register.mi_hw_intr_mask_reg |= 0x100; // set RDB mask
+    if (MI_register.w_mi_hw_intr_mask_reg & 0x40000)  MI_register.mi_hw_intr_mask_reg &= ~0x200; // clear AES mask
+    if (MI_register.w_mi_hw_intr_mask_reg & 0x80000)  MI_register.mi_hw_intr_mask_reg |= 0x200; // set AES mask
+    if (MI_register.w_mi_hw_intr_mask_reg & 0x100000) MI_register.mi_hw_intr_mask_reg &= ~0x400; // clear PI_ERR mask
+    if (MI_register.w_mi_hw_intr_mask_reg & 0x200000) MI_register.mi_hw_intr_mask_reg |= 0x400; // set PI_ERR mask
+    if (MI_register.w_mi_hw_intr_mask_reg & 0x400000) MI_register.mi_hw_intr_mask_reg &= ~0x800; // clear USB0 mask
+    if (MI_register.w_mi_hw_intr_mask_reg & 0x800000) MI_register.mi_hw_intr_mask_reg |= 0x800; // set USB0 mask
+    if (MI_register.w_mi_hw_intr_mask_reg & 0x1000000) MI_register.mi_hw_intr_mask_reg &= ~0x1000; // clear USB1 mask
+    if (MI_register.w_mi_hw_intr_mask_reg & 0x2000000) MI_register.mi_hw_intr_mask_reg |= 0x1000; // set USB1 mask
+    if (MI_register.w_mi_hw_intr_mask_reg & 0x4000000) MI_register.mi_hw_intr_mask_reg &= ~0x2000; // clear NAND mask
+    if (MI_register.w_mi_hw_intr_mask_reg & 0x8000000) MI_register.mi_hw_intr_mask_reg |= 0x2000; // set NAND mask
 }
 
 void make_w_sp_status_reg(void)
@@ -2508,6 +2535,10 @@ void write_mi(void)
         update_count();
         if (next_interupt <= Count) gen_interupt();
         break;
+    case 0x3c:
+        MI_register.w_mi_hw_intr_mask_reg = word;
+        update_MI_hw_intr_mask_reg();
+        break;
     }
 }
 
@@ -2535,6 +2566,14 @@ void write_mib(void)
         update_count();
         if (next_interupt <= Count) gen_interupt();
         break;
+    case 0x3c:
+    case 0x3d:
+    case 0x3e:
+    case 0x3f:
+        *((unsigned char*)&MI_register.w_mi_hw_intr_mask_reg
+          + ((*address_low&3)^S8) ) = cpu_byte;
+        update_MI_hw_intr_mask_reg();
+        break;
     }
 }
 
@@ -2558,6 +2597,12 @@ void write_mih(void)
         update_count();
         if (next_interupt <= Count) gen_interupt();
         break;
+    case 0x3c:
+    case 0x3e:
+        *((unsigned short*)((unsigned char*)&MI_register.w_mi_hw_intr_mask_reg
+                            + ((*address_low&3)^S16) )) = hword;
+        update_MI_hw_intr_mask_reg();
+        break;
     }
 }
 
@@ -2576,6 +2621,10 @@ void write_mid(void)
         check_interupt();
         update_count();
         if (next_interupt <= Count) gen_interupt();
+        break;
+    case 0x38:
+        MI_register.w_mi_hw_intr_mask_reg = (unsigned int) (dword & 0xFFFFFFFF);
+        update_MI_hw_intr_mask_reg();
         break;
     }
 }

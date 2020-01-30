@@ -135,6 +135,10 @@ typedef struct _mips_register
    unsigned int mi_intr_reg;
    unsigned int mi_intr_mask_reg;
    unsigned int w_mi_intr_mask_reg;
+
+   /* iQue */
+   unsigned int mi_hw_intr_mask_reg;
+   unsigned int w_mi_hw_intr_mask_reg;
 } mips_register;
 
 typedef struct _VI_register
