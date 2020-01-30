@@ -610,18 +610,37 @@ EXPORT void CALL init_saveram(void)
 	sram_format();
 }
 
+int is_ique()
+{
+	int i;
+	for (i=0x20; i<0x40; i++) {
+		if (rom[i] != 0) {
+			return 0;
+		}
+	}
+	return 1;
+}
+
 EXPORT void CALL save_saveram(unsigned char * dest)
 {
-	memcpy(dest, eeprom, 0x800);
-	memcpy(dest + 0x800, mempack, 4 * 0x8000);
-	memcpy(dest + (0x800 + 4 * 0x8000), flashram, 0x20000);
-	memcpy(dest + (0x800 + 4 * 0x8000 + 0x20000), sram, 0x8000);
+	if (is_ique()) { /* iQue */
+		memcpy(dest, rdramb+0x7C0000, 0x40000);
+	} else {
+		memcpy(dest, eeprom, 0x800);
+		memcpy(dest + 0x800, mempack, 4 * 0x8000);
+		memcpy(dest + (0x800 + 4 * 0x8000), flashram, 0x20000);
+		memcpy(dest + (0x800 + 4 * 0x8000 + 0x20000), sram, 0x8000);
+	}
 }
 
 EXPORT void CALL load_saveram(unsigned char * src)
 {
-	memcpy(eeprom, src, 0x800);
-	memcpy(mempack, src + 0x800, 4 * 0x8000);
-	memcpy(flashram, src + (0x800 + 4 * 0x8000), 0x20000);
-	memcpy(sram, src + (0x800 + 4 * 0x8000 + 0x20000), 0x8000);
+	if (is_ique()) { /* iQue */
+		memcpy(rdramb+0x7C0000, src, 0x40000);
+	} else {
+		memcpy(eeprom, src, 0x800);
+		memcpy(mempack, src + 0x800, 4 * 0x8000);
+		memcpy(flashram, src + (0x800 + 4 * 0x8000), 0x20000);
+		memcpy(sram, src + (0x800 + 4 * 0x8000 + 0x20000), 0x8000);
+	}
 }
